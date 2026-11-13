@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { Activity, Bell, CalendarDays, ChevronDown, CircleDollarSign, Dumbbell, LayoutDashboard, Plus, Search, Settings, UserRoundPlus, Users, Wallet } from "lucide-react";
 
 const stats = [
   { label:"Total members", note:"Live count after database setup", icon:Users },
