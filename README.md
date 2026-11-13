@@ -1,9 +1,9 @@
 # GymCRM — Personal Edition
 
-A single-owner gym management workspace built with Next.js, TypeScript, Tailwind CSS, and Supabase.
+A private, single-owner gym management system. It is designed to be accessible securely from a laptop, desktop, or phone through the internet.
 
-## Features
-- Dashboard for members, revenue, attendance, expiries and follow-ups
+## Planned modules
+- Dashboard: members, revenue, attendance, expiries and follow-ups
 - Member and lead management
 - Membership plans, subscriptions and renewals
 - Attendance and payment tracking
@@ -11,17 +11,22 @@ A single-owner gym management workspace built with Next.js, TypeScript, Tailwind
 - Reminders and reports
 
 ## Architecture
-- One authenticated owner; no multi-tenant SaaS layer
-- Supabase Auth with cookie-based SSR sessions
-- PostgreSQL with Row Level Security on every exposed application table
-- All business records are scoped to the authenticated owner via `owner_id`
+- Next.js + TypeScript application
+- PostgreSQL hosted on Neon (not Supabase)
+- Prisma ORM for schema management and database access
+- Vercel hosting for access from anywhere
+- Single-owner authentication; no staff accounts or multi-tenant SaaS layer
 
-## Setup
+## Local development
 1. Install Node.js LTS.
 2. Run `npm install`.
-3. Copy `.env.example` to `.env.local` and add your Supabase URL and publishable key.
-4. Run `npm run dev`.
+3. Copy `.env.example` to `.env.local`.
+4. Add your Neon PostgreSQL connection string and a strong authentication secret.
+5. Run `npx prisma generate`.
+6. Run `npm run dev`.
 
-Apply `supabase/migrations/0001_initial_schema.sql` to the dedicated GymCRM Supabase project.
+## Deployment
+Deploy the repository to Vercel and add the same environment variables in the Vercel project settings. Use a Neon pooled connection string for `DATABASE_URL`. Run Prisma migrations as part of the controlled deployment workflow.
 
-Never commit `.env.local`, Supabase secret keys, or service-role keys.
+## Security
+Never commit `.env.local`, database credentials, authentication secrets, or production passwords. Use HTTPS and a strong unique admin password. The app is intended for one authorized owner.
