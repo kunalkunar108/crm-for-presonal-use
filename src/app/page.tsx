@@ -1,4 +1,6 @@
-import { Activity, Bell, CalendarDays, ChevronDown, CircleDollarSign, Dumbbell, LayoutDashboard, Plus, Search, Settings, Users, UserRoundPlus, Wallet } from "lucide-react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 
 const stats = [
   { label:"Total members", note:"Live count after database setup", icon:Users },
@@ -9,7 +11,9 @@ const stats = [
 const nav = [{label:"Dashboard",icon:LayoutDashboard,active:true},{label:"Members",icon:Users},{label:"Leads & follow-ups",icon:UserRoundPlus},{label:"Memberships",icon:Dumbbell},{label:"Attendance",icon:CalendarDays},{label:"Payments",icon:Wallet}];
 const actions = [{label:"Add member",icon:UserRoundPlus},{label:"Record payment",icon:CircleDollarSign},{label:"Mark attendance",icon:CalendarDays},{label:"Add lead",icon:Plus}];
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/login");
   return <main className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
     <aside className="hidden border-r border-[var(--line)] bg-white px-5 py-7 lg:flex lg:flex-col">
       <div className="mb-10 flex items-center gap-3 px-2"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#315efb] text-white"><Dumbbell size={21}/></div><div><div className="text-lg font-bold">GymCRM</div><div className="text-[10px] tracking-widest text-slate-400">PERSONAL WORKSPACE</div></div></div>
