@@ -1,32 +1,39 @@
 # GymCRM — Personal Edition
 
-A private, single-owner gym management system. It is designed to be accessible securely from a laptop, desktop, or phone through the internet.
+A private, single-admin gym management workspace. The app is intended to be accessible online from a laptop or phone.
 
-## Planned modules
-- Dashboard: members, revenue, attendance, expiries and follow-ups
-- Member and lead management
-- Membership plans, subscriptions and renewals
-- Attendance and payment tracking
-- Workout plans and assignments
+## Stack
+- Next.js App Router + TypeScript
+- Neon PostgreSQL
+- Prisma ORM
+- Better Auth for single-admin authentication
+- Vercel hosting
+
+## Product scope
+- Dashboard: members, revenue, attendance, expiring memberships and follow-ups
+- Members and lead pipeline
+- Membership plans, memberships and renewals
+- Attendance tracking
+- Payments and revenue records
+- Workout plans and member assignments
 - Reminders and reports
+- Gym profile and settings
 
-## Architecture
-- Next.js + TypeScript application
-- PostgreSQL hosted on Neon (not Supabase)
-- Prisma ORM for schema management and database access
-- Vercel hosting for access from anywhere
-- Single-owner authentication; no staff accounts or multi-tenant SaaS layer
-
-## Local development
-1. Install Node.js LTS.
+## Local setup
+1. Install Node.js 20.19+ or 22.12+.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env.local`.
-4. Add your Neon PostgreSQL connection string and a strong authentication secret.
-5. Run `npx prisma generate`.
-6. Run `npm run dev`.
-
-## Deployment
-Deploy the repository to Vercel and add the same environment variables in the Vercel project settings. Use a Neon pooled connection string for `DATABASE_URL`. Run Prisma migrations as part of the controlled deployment workflow.
+4. Create a Neon PostgreSQL database and set `DATABASE_URL`.
+5. Generate a strong `BETTER_AUTH_SECRET` and set `BETTER_AUTH_URL=http://localhost:3000`.
+6. Run `npm run db:generate`.
+7. Run `npm run db:migrate` after configuring the Prisma schema.
+8. Run `npm run dev`.
 
 ## Security
-Never commit `.env.local`, database credentials, authentication secrets, or production passwords. Use HTTPS and a strong unique admin password. The app is intended for one authorized owner.
+- Single owner account; no public self-registration.
+- All gym records are related to the authenticated owner.
+- Never commit `.env.local`, database credentials, or auth secrets.
+- Production access must be protected by authentication.
+
+## Deployment
+Deploy the Next.js app to Vercel and configure the production Neon connection string and Better Auth environment variables in Vercel. Database migrations should be applied as part of a controlled release.
