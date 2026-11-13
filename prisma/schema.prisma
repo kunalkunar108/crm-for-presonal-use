@@ -8,12 +8,15 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
 
   gymSettings  GymSettings?
   members      Member[]
@@ -27,6 +30,47 @@ model User {
   reminders    Reminder[]
 }
 
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([identifier])
+}
+
 model GymSettings {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -38,79 +82,72 @@ model GymSettings {
   timezone  String   @default("Asia/Kolkata")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Member {
-  id                   String   @id @default(cuid())
-  userId               String
-  memberCode           String?
-  fullName             String
-  phone                String?
-  email                String?
-  dateOfBirth          DateTime?
-  gender               String?
-  address              String?
-  emergencyContactName String?
+  id                    String   @id @default(cuid())
+  userId                String
+  memberCode            String?
+  fullName              String
+  phone                 String?
+  email                 String?
+  dateOfBirth           DateTime?
+  gender                String?
+  address               String?
+  emergencyContactName  String?
   emergencyContactPhone String?
-  fitnessGoal          String?
-  medicalNotes         String?
-  joinedOn             DateTime @default(now())
-  status               String   @default("active")
-  notes                String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
+  fitnessGoal           String?
+  medicalNotes          String?
+  joinedOn              DateTime @default(now())
+  status                String   @default("active")
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   memberships Membership[]
   attendance  Attendance[]
   payments    Payment[]
   assignments MemberWorkoutPlan[]
   reminders   Reminder[]
-
   @@unique([userId, memberCode])
   @@index([userId, status])
   @@index([userId, fullName])
 }
 
 model Lead {
-  id               String   @id @default(cuid())
-  userId           String
-  fullName         String
-  phone            String?
-  email            String?
-  source           String?
-  interest         String?
-  stage            String   @default("new")
-  nextFollowUpAt   DateTime?
-  lastContactedAt  DateTime?
+  id                String   @id @default(cuid())
+  userId            String
+  fullName          String
+  phone             String?
+  email             String?
+  source            String?
+  interest          String?
+  stage             String   @default("new")
+  nextFollowUpAt    DateTime?
+  lastContactedAt   DateTime?
   convertedMemberId String?
-  notes            String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   reminders Reminder[]
-
   @@index([userId, stage])
   @@index([userId, nextFollowUpAt])
 }
 
 model MembershipPlan {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
   durationDays Int
-  price       Decimal  @db.Decimal(12, 2)
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  price        Decimal  @db.Decimal(12, 2)
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   memberships Membership[]
-
   @@unique([userId, name])
 }
 
@@ -127,49 +164,43 @@ model Membership {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  member   Member   @relation(fields: [memberId], references: [id], onDelete: Restrict)
-  plan     MembershipPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  plan MembershipPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
   payments Payment[]
-
   @@index([userId, endDate])
 }
 
 model Attendance {
-  id           String   @id @default(cuid())
-  userId       String
-  memberId     String
-  checkedInAt  DateTime @default(now())
-  checkedOutAt DateTime?
+  id             String   @id @default(cuid())
+  userId         String
+  memberId       String
+  checkedInAt    DateTime @default(now())
+  checkedOutAt   DateTime?
   attendanceDate DateTime @default(now())
-  source       String   @default("manual")
-  notes        String?
-  createdAt    DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source         String   @default("manual")
+  notes          String?
+  createdAt      DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
   @@index([userId, memberId, attendanceDate])
 }
 
 model Payment {
-  id            String   @id @default(cuid())
-  userId        String
-  memberId      String
-  membershipId  String?
-  amount        Decimal  @db.Decimal(12, 2)
-  paymentDate   DateTime @default(now())
-  paymentMethod String   @default("cash")
-  status        String   @default("paid")
+  id              String   @id @default(cuid())
+  userId          String
+  memberId        String
+  membershipId    String?
+  amount          Decimal  @db.Decimal(12, 2)
+  paymentDate     DateTime @default(now())
+  paymentMethod   String   @default("cash")
+  status          String   @default("paid")
   referenceNumber String?
-  notes         String?
-  createdAt     DateTime @default(now())
-
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  member     Member      @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  notes           String?
+  createdAt       DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
   membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
-
   @@index([userId, paymentDate])
 }
 
@@ -184,8 +215,7 @@ model WorkoutPlan {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   assignments MemberWorkoutPlan[]
 }
 
@@ -198,28 +228,25 @@ model MemberWorkoutPlan {
   endsOn        DateTime?
   notes         String?
   createdAt     DateTime @default(now())
-
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  member      Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   workoutPlan WorkoutPlan @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
 }
 
 model Reminder {
-  id            String   @id @default(cuid())
-  userId        String
-  memberId      String?
-  leadId        String?
-  title         String
-  description   String?
-  dueAt         DateTime
-  status        String   @default("pending")
-  reminderType  String   @default("general")
-  createdAt     DateTime @default(now())
-  completedAt   DateTime?
-
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  userId       String
+  memberId     String?
+  leadId       String?
+  title        String
+  description  String?
+  dueAt        DateTime
+  status       String   @default("pending")
+  reminderType String   @default("general")
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   member Member? @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
+  lead Lead? @relation(fields: [leadId], references: [id], onDelete: Cascade)
   @@index([userId, dueAt, status])
 }
